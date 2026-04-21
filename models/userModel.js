@@ -9,13 +9,27 @@ const findById = (userId) => {
 };
 
 const create = (userData) => {
+  // Generate a simple userId if not provided
+  if (!userData.userId) {
+    userData.userId = `u_${users.length + 1}`;
+  }
   users.push(userData);
   return userData;
+};
+
+const update = (userId, updateData) => {
+  const index = users.findIndex(u => u.userId === userId);
+  if (index !== -1) {
+    users[index] = { ...users[index], ...updateData };
+    return users[index];
+  }
+  return null;
 };
 
 module.exports = {
   findByMobile,
   findById,
   create,
-  users // Exporting users array for debugging or in-memory persistence if needed
+  update,
+  users
 };
