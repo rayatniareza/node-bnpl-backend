@@ -5,9 +5,82 @@ const authMiddleware = require('../middlewares/auth');
 
 /**
  * @swagger
+ * /api/auth/request-otp:
+ *   post:
+ *     summary: Request an OTP for a mobile number
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - mobile
+ *             properties:
+ *               mobile:
+ *                 type: string
+ *                 example: "09123456789"
+ *     responses:
+ *       200:
+ *         description: OTP requested successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 expiresIn:
+ *                   type: integer
+ *                   example: 120
+ *       400:
+ *         description: Invalid mobile number format
+ */
+router.post('/request-otp', authController.requestOtp);
+
+/**
+ * @swagger
+ * /api/auth/verify-otp:
+ *   post:
+ *     summary: Verify OTP and login/register
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - mobile
+ *               - code
+ *             properties:
+ *               mobile:
+ *                 type: string
+ *                 example: "09123456789"
+ *               code:
+ *                 type: string
+ *                 example: "123456"
+ *     responses:
+ *       200:
+ *         description: OTP verified successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 accessToken:
+ *                   type: string
+ *                 isNewUser:
+ *                   type: boolean
+ *       401:
+ *         description: Invalid OTP or mobile
+ */
+router.post('/verify-otp', authController.verifyOtp);
+
+/**
+ * @swagger
  * /api/auth/register:
  *   post:
- *     summary: Register a new user
+ *     summary: Register a new user (Traditional)
  *     tags: [Auth]
  *     requestBody:
  *       required: true
@@ -28,24 +101,8 @@ const authMiddleware = require('../middlewares/auth');
  *     responses:
  *       201:
  *         description: User created successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                 newUser:
- *                   type: object
- *                   properties:
- *                     userId:
- *                       type: string
- *                     mobile:
- *                       type: string
- *                     password:
- *                       type: string
  *       400:
- *         description: User already exists or invalid input
+ *         description: User already exists
  */
 router.post('/register', authController.register);
 
@@ -53,7 +110,7 @@ router.post('/register', authController.register);
  * @swagger
  * /api/auth/login:
  *   post:
- *     summary: Login with mobile and OTP code
+ *     summary: Login with mobile and OTP code (Traditional/Hardcoded)
  *     tags: [Auth]
  *     requestBody:
  *       required: true
@@ -74,13 +131,6 @@ router.post('/register', authController.register);
  *     responses:
  *       200:
  *         description: Successful login
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 accessToken:
- *                   type: string
  *       401:
  *         description: Invalid OTP or mobile
  */
@@ -97,17 +147,6 @@ router.post('/login', authController.login);
  *     responses:
  *       200:
  *         description: User details fetched successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 userId:
- *                   type: string
- *                 mobile:
- *                   type: string
- *                 isAuthenticated:
- *                   type: boolean
  *       401:
  *         description: Invalid token or user not authenticated
  */
