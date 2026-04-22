@@ -57,7 +57,7 @@ const verifyOtp = async (req, res) => {
 
     const token = jwt.sign(
       { userId: user.userId, mobile: user.mobile },
-      process.env.JWT_SECRET || 'supersecretkey',
+      process.env.JWT_SECRET,
       { expiresIn: '1h' }
     );
 
@@ -121,7 +121,7 @@ const login = async (req, res) => {
 
   const token = jwt.sign(
     { userId: user.userId, mobile: user.mobile },
-    process.env.JWT_SECRET || 'supersecretkey',
+    process.env.JWT_SECRET,
     { expiresIn: '1h' }
   );
 

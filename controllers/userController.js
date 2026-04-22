@@ -18,12 +18,12 @@ const createProfile = async (req, res) => {
     return res.status(400).json({ message: "Invalid birthDate format" });
   }
 
-  const user = User.findById(userId);
+  const user = await User.findById(userId);
   if (!user) {
     return res.status(404).json({ message: "User not found" });
   }
 
-  const updatedUser = User.update(userId, {
+  const updatedUser = await User.update(userId, {
     nationalId,
     birthDate: new Date(birthDate),
     kycStatus: "Pending",
@@ -43,6 +43,30 @@ const createProfile = async (req, res) => {
   });
 };
 
+const getCurrentUserStatus = async (req, res) => {
+  const userId = req.user.userId;
+  const user = await User.findById(userId);
+
+  if (!user) {
+    return res.status(404).json({ message: "User not found" });
+  }
+
+  const kycStatus = user.kycStatus || 'Pending';
+  const kycLevel = user.kycLevel !== undefined ? user.kycLevel : 0;
+
+  // Eligibility: Verified AND level >= 1
+  const isEligibleForCredit = (kycStatus === 'Verified' && kycLevel >= 1);
+
+  res.status(200).json({
+    userId: user.userId,
+    mobile: user.mobile,
+    kycStatus,
+    kycLevel,
+    isEligibleForCredit
+  });
+};
+
 module.exports = {
-  createProfile
+  createProfile,
+  getCurrentUserStatus
 };
