@@ -51,4 +51,38 @@ const authMiddleware = require('../middlewares/auth');
  */
 router.post('/profile', authMiddleware, userController.createProfile);
 
+/**
+ * @swagger
+ * /api/users/me:
+ *   get:
+ *     summary: Get current user status and eligibility
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: User status fetched successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 userId:
+ *                   type: string
+ *                 mobile:
+ *                   type: string
+ *                 kycStatus:
+ *                   type: string
+ *                   enum: [Pending, Verified, Rejected]
+ *                 kycLevel:
+ *                   type: integer
+ *                 isEligibleForCredit:
+ *                   type: boolean
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: User not found
+ */
+router.get('/me', authMiddleware, userController.getCurrentUserStatus);
+
 module.exports = router;

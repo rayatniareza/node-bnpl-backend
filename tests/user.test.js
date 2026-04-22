@@ -66,4 +66,78 @@ describe('User Profile APIs', () => {
       expect(res.statusCode).toEqual(401);
     });
   });
+
+  describe('GET /api/users/me', () => {
+    it('should return user status for authenticated user', async () => {
+      const res = await request(app)
+        .get('/api/users/me')
+        .set('Authorization', `Bearer ${token}`);
+
+      expect(res.statusCode).toEqual(200);
+      expect(res.body).toEqual({
+        userId: userId,
+        mobile: mobile,
+        kycStatus: 'Pending',
+        kycLevel: 0,
+        isEligibleForCredit: false
+      });
+    });
+
+    it('should return isEligibleForCredit: true when KYC is Verified and level >= 1', async () => {
+      User.update(userId, { kycStatus: 'Verified', kycLevel: 1 });
+
+      const res = await request(app)
+        .get('/api/users/me')
+        .set('Authorization', `Bearer ${token}`);
+
+      expect(res.statusCode).toEqual(200);
+      expect(res.body.kycStatus).toEqual('Verified');
+      expect(res.body.kycLevel).toEqual(1);
+      expect(res.body.isEligibleForCredit).toEqual(true);
+    });
+
+    it('should return isEligibleForCredit: false when KYC is Verified but level is 0', async () => {
+      User.update(userId, { kycStatus: 'Verified', kycLevel: 0 });
+
+      const res = await request(app)
+        .get('/api/users/me')
+        .set('Authorization', `Bearer ${token}`);
+
+      expect(res.statusCode).toEqual(200);
+      expect(res.body.kycStatus).toEqual('Verified');
+      expect(res.body.kycLevel).toEqual(0);
+      expect(res.body.isEligibleForCredit).toEqual(false);
+    });
+
+    it('should return isEligibleForCredit: false when KYC is Rejected', async () => {
+      User.update(userId, { kycStatus: 'Rejected', kycLevel: 1 });
+
+      const res = await request(app)
+        .get('/api/users/me')
+        .set('Authorization', `Bearer ${token}`);
+
+      expect(res.statusCode).toEqual(200);
+      expect(res.body.kycStatus).toEqual('Rejected');
+      expect(res.body.isEligibleForCredit).toEqual(false);
+    });
+
+    it('should return 404 if user is not found in database but token is valid', async () => {
+      User.users.length = 0; // Clear users
+
+      const res = await request(app)
+        .get('/api/users/me')
+        .set('Authorization', `Bearer ${token}`);
+
+      expect(res.statusCode).toEqual(404);
+      expect(res.body).toHaveProperty('message', 'User not found');
+    });
+
+    it('should return 401 for invalid token', async () => {
+      const res = await request(app)
+        .get('/api/users/me')
+        .set('Authorization', 'Bearer invalidtoken');
+
+      expect(res.statusCode).toEqual(401);
+    });
+  });
 });
